@@ -1,2 +1,2 @@
 # BrainCooked
-A compiler from C++ to BrainFuck.
+A compiler from a higher level Psudo-Code to BrainFuck.

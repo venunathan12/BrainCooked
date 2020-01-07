@@ -1,0 +1,14 @@
+func MAIN
+
+int A
+int B
+int C
+int D
+
+A set 4
+B set 7
+
+C = A
+D <- A
+
+endfunc
