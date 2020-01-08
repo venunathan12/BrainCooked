@@ -36,6 +36,10 @@ class BrainNode:
         self.Pointer += self.PAD + I
         return ">" * (self.PAD + I)
     
+    def ToReturn(self):
+        self.Pointer -= self.ReturnDist
+        return "<" * self.ReturnDist
+    
     def ModifyLocal(self, I):
         if I > 0:
             return "+" * I
@@ -58,6 +62,9 @@ class BrainNode:
     
     def ForPositive(self):
         return "[-", "]"
+    
+    def WhilePositive(self):
+        return "[", "]"
     
     def ChangeExeLine(self, From, To):
         From = H_ToBin(From)

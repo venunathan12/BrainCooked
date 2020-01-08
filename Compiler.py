@@ -4,6 +4,8 @@ Code = []
 FnMap = {}; FnData = {}
 VarMap = {}
 
+IFQueue = []; IFStatus = []
+
 def BreakDown():
     
     ActiveFn = None
@@ -21,6 +23,27 @@ def BreakDown():
 
         elif T == "endfunc":
             ActiveFn = None
+        
+        elif T == "end":
+            FnData[FnMap[ActiveFn]].append(['END'])
+        
+        elif T == "return":
+            Y = Cs.pop(0)
+
+            if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                FnData[FnMap[ActiveFn]].append(['RETURN', VarMap[FnMap[ActiveFn]][0][Y]])
+        
+        elif T == "if":
+            Y = Cs.pop(0)
+
+            if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                FnData[FnMap[ActiveFn]].append(['IF', VarMap[FnMap[ActiveFn]][0][Y]])
+
+        elif T == "else":
+            FnData[FnMap[ActiveFn]].append(['ELSE'])
+        
+        elif T == "endif":
+            FnData[FnMap[ActiveFn]].append(['ENDIF'])
 
         elif T == "int":
             X = Cs.pop(0)
@@ -36,12 +59,19 @@ def BreakDown():
                 X = Cs.pop(0)
 
                 if X == "set":
-                    FnData[FnMap[ActiveFn]].append(['SET', VarMap[FnMap[ActiveFn]][0][T], Cs.pop(0)])
+                    Y = Cs.pop(0)
+
+                    if Y[0] == '"':
+                        pass
+                    else:
+                        FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
+                        FnData[FnMap[ActiveFn]].append(['MOD', VarMap[FnMap[ActiveFn]][0][T], Y])
                     
                 elif X == "=":
                     Y = Cs.pop(0)
 
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                        FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                         FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
                 
                 elif X == "<-":
@@ -49,8 +79,6 @@ def BreakDown():
 
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
                         FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
-
-    FnData[0].append(['END'])
 
 def Assemble():
 
@@ -65,27 +93,106 @@ def Assemble():
             X = Op.pop(0)
             Command = ""
             B = BrainNode(VarMap[I][1])
+            APPEND = True
 
-            if X == "SET":
+            if X == "CLEAR":
+                Targ = Op.pop(0)
+
+                Loop = B.ForPositive()
+                Command += B.AccessLocal(Targ)
+                Command += Loop[0] + Loop[1]
+                Command += B.ReturnToBase()
+
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
+                Command += B.ParkOutside()
+
+            elif X == "MOD":
                 Targ = Op.pop(0)
                 Val = Op.pop(0)
 
-                if Val[0] == '"':
-                    pass
-                else:
-                    Val = int(Val)
-                    Command += B.AccessLocal(Targ)
-                    Command += B.ModifyLocal(Val)
-                    Command += B.ReturnToBase()
+                Val = int(Val)
+                Command += B.AccessLocal(Targ)
+                Command += B.ModifyLocal(Val)
+                Command += B.ReturnToBase()
 
-                    Command += B.ChangeExeLine(ExeLine, ExeLine+1)
-                    Command += B.ParkOutside()
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
+                Command += B.ParkOutside()
 
             elif X == "END":
                 Command += B.MovePtr(2 - B.ReturnDist)
                 Command += B.ModifyLocal(-1)
                 Command += B.ReturnToBase()
                 Command += B.ParkOutside()
+            
+            elif X == "IF":
+                Trig = Op.pop(0)
+
+                Loop = B.ForPositive()
+
+                Command += B.AccessLocal(Trig)
+                Command += Loop[0]
+                Command += B.ReturnToBase() + B.ModifyLocal(1) + B.ParkOutside() + B.ModifyLocal(1)
+                Command += B.ReturnToBase() + B.AccessLocal(Trig)
+                Command += Loop[1]
+                Command += B.ReturnToBase()
+
+                Command += Loop[0]
+                Command += B.AccessLocal(Trig) + B.ModifyLocal(1) + B.ReturnToBase()
+                Command += Loop[1]
+
+                LoopW = B.WhilePositive()
+
+                Command += B.ParkOutside() + B.MovePtr(1) + B.ModifyLocal(1) + B.MovePtr(-1)
+                Command += LoopW[0]
+                Command += Loop[0] + Loop[1] + B.MovePtr(1)
+                Command += Loop[0] + B.ReturnToBase() + B.ChangeExeLine(ExeLine, ExeLine + 1) + B.ParkOutside() + Loop[1]
+                Command += LoopW[1]
+                Command += B.MovePtr(1)
+                Command += Loop[0] + B.ReturnToBase() + "$" + B.ParkOutside() +  Loop[1]
+
+                IFQueue.append(ExeLine)
+                IFStatus.append('IF')
+
+            elif X == "ELSE":
+
+                Copy = Fns[-1][IFQueue[-1]].split('$')
+                Fns[-1][IFQueue[-1]] = Copy[0] + B.ChangeExeLine(IFQueue[-1], ExeLine) + Copy[1]
+
+                _ = B.ParkOutside()
+                Fns[-1][-1] += B.ReturnToBase() + "$" + B.ParkOutside()
+
+                IFQueue[-1] = ExeLine - 1
+                IFStatus[-1] = 'ELSE'
+                ExeLine -= 1
+                APPEND = False
+
+            elif X == "ENDIF":
+                Targ = IFQueue.pop(); Status = IFStatus.pop()
+
+                Copy = Fns[-1][Targ].split('$')
+
+                if Status == 'IF':
+                    Fns[-1][Targ] = Copy[0] + B.ChangeExeLine(Targ, ExeLine) + Copy[1]
+                elif Status == 'ELSE':
+                    Fns[-1][Targ] = Copy[0] + B.ChangeExeLine(Targ + 1, ExeLine) + Copy[1]
+
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
+                Command += B.ParkOutside()
+            
+            elif X == "RETURN":
+                Val = Op.pop(0)
+
+                Loop = B.ForPositive()
+                Command += B.AccessLocal(Val)
+                Command += Loop[0]
+                Command += B.ReturnToBase() + B.ToReturn() + B.ModifyLocal(1)
+                Command += B.ReturnToBase() + B.AccessLocal(Val)
+                Command += Loop[1]
+                Command += B.ReturnToBase()
+
+                Command += B.ToReturn()
+                Command += B.MovePtr(1) + B.ModifyLocal(1)
+                Command += (B.MovePtr(1) + Loop[0] + Loop[1]) * (B.ReturnDist + B.PAD + B.Sz)
             
             elif X == "COPY":
                 Targ = Op.pop(0)
@@ -120,7 +227,8 @@ def Assemble():
                 Command += B.ChangeExeLine(ExeLine, ExeLine+1)
                 Command += B.ParkOutside()
 
-            Fns[-1].append(Command)
+            if APPEND:
+                Fns[-1].append(Command)
             ExeLine += 1
 
         I += 1
@@ -147,4 +255,11 @@ if __name__ == "__main__":
 
     BreakDown()
     print(FnData)
-    print(Assemble())
+
+    Ps = Assemble()
+    Out = open("Compiled.txt", "w")
+    for P in Ps:
+        for p in P:
+            print('\t' + p)
+            Out.write(p + '\n')
+    Out.close()

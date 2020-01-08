@@ -91,7 +91,7 @@ int main()
     }
 
     for(int I = 0; I < 16; I++)
-    cout << Space[I] << "   ";
+        cout << Space[I] << "   ";    
 
     fclose(Ins); fclose(Inp); fclose(Out);
     return 0;

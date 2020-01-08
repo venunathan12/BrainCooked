@@ -4,11 +4,33 @@ int A
 int B
 int C
 int D
+int E
+int F
 
-A set 4
-B set 7
+A set 0
+B set 0
 
-C = A
-D <- A
+C set 3
+D set 9
+
+if A
+
+if B
+F set 10
+else
+F set 8
+endif
+
+else
+
+if B
+F <- C
+else
+F <- D
+endif
+
+endif
+
+end
 
 endfunc
