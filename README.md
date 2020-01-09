@@ -56,6 +56,7 @@ The following commands can be used within body of functions:
     * Empties the other variable and increments Var by the by the value the other variable stored.
 * Var -= __ (for internal purposes)
     * Decrements both Var and the other variable till one of them becomes zero.
+    * Note : The variable Var must have been declared before the other variable.
 
 ### Usage : Compiling
 
