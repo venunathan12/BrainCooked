@@ -1,36 +1,26 @@
 func MAIN
 
-int A
-int B
-int C
-int D
-int E
-int F
+	int L
+	int R
 
-A set 0
-B set 0
+	L set 8
+	R set 5
 
-C set 3
-D set 9
+	L = SUB L R
 
-if A
+	end
+endfunc
 
-if B
-F set 10
-else
-F set 8
-endif
+func ADD
+	int I0
+	int I1
+	I0 <- I1
+	return I0
+endfunc
 
-else
-
-if B
-F <- C
-else
-F <- D
-endif
-
-endif
-
-end
-
+func SUB
+	int I0
+	int I1
+	I0 -= I1
+	return I0
 endfunc

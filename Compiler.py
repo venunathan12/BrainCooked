@@ -5,10 +5,23 @@ FnMap = {}; FnData = {}
 VarMap = {}
 
 IFQueue = []; IFStatus = []
+CallInfo = {}
 
 def BreakDown():
     
     ActiveFn = None
+
+    for C in Code:
+        Cs = C.split(' ')
+
+        T = Cs[0]
+        if T == "func":
+            X = Cs[1]
+            L = FnMap[X] = len(FnMap.keys())
+            FnData[L] = [['FUNC', X]]
+            VarMap[L] = [{}, 0]
+            CallInfo[X] = [None, []]
+
     for C in Code:
         Cs = C.split(' ')
 
@@ -16,10 +29,6 @@ def BreakDown():
         if T == "func":
             X = Cs.pop(0)
             ActiveFn = X
-
-            L = FnMap[X] = len(FnMap.keys())
-            FnData[L] = []
-            VarMap[L] = [{}, 0]
 
         elif T == "endfunc":
             ActiveFn = None
@@ -73,29 +82,92 @@ def BreakDown():
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
                         FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                         FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
+                    if Y in FnMap.keys():
+                        Action = ['CALL', Y]
+                        while len(Cs):
+                            R = Cs.pop(0)
+                            Action.append(VarMap[FnMap[ActiveFn]][0][R])
+                        FnData[FnMap[ActiveFn]].append(Action)
+
+                        FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
+                        FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][1]])
+
                 
                 elif X == "<-":
                     Y = Cs.pop(0)
 
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
                         FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
+                
+                elif X == "-=":
+                    Y = Cs.pop(0)
+
+                    if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                        FnData[FnMap[ActiveFn]].append(['CDCR', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
 
 def Assemble():
 
-    Fns = []
+    Fns = []; Fns.append([])
 
     I = 0
+    ExeLine = 0
+
     while I in FnData.keys():
-        Fns.append([])
-        ExeLine = 0
 
         for Op in FnData[I]:
             X = Op.pop(0)
             Command = ""
-            B = BrainNode(VarMap[I][1])
+            B = BrainNode(VarMap[I][1] + 1)
             APPEND = True
 
-            if X == "CLEAR":
+            if X == "FUNC":
+                Val = Op.pop(0)
+                CallInfo[Val][0] = ExeLine
+
+                for R in CallInfo[Val][1]:
+                    Copy = Fns[-1][R].split('$')
+                    Fns[-1][R] = Copy[0] + B.ChangeExeLine(0, ExeLine) + Copy[1]
+
+                ExeLine -= 1
+                APPEND = False
+            
+            if X == "CALL":
+                Fn = Op.pop(0)
+
+                Args = []
+                while len(Op):
+                    Args.append(Op.pop(0))
+                
+                Loop = B.ForPositive()
+
+                Command += B.ParkOutside() + B.ModifyLocal(-1) + B.MovePtr(1) + B.ModifyLocal(1) + B.MovePtr(-2)
+                Command += B.MovePtr(B.ReturnDist)
+                if CallInfo[Fn][0] == None:
+                    Command += "$"
+                    CallInfo[Fn][1].append(ExeLine)
+                else:
+                    Command += B.ChangeExeLine(0, CallInfo[Fn][0])
+                Command += B.ReturnToBase()
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
+
+                Item = 0
+                for A in Args:
+                    Command += B.AccessLocal(A)
+                    Command += Loop[0]
+                    Command += B.ReturnToBase() + B.ModifyLocal(1) + B.ParkOutside() + B.MovePtr(B.ReturnDist - 1) + B.AccessLocal(Item) + B.ModifyLocal(1)
+                    Command += B.ReturnToBase() + B.AccessLocal(A)
+                    Command += Loop[1]
+                    Command += B.ReturnToBase()
+                    Command += Loop[0]
+                    Command += B.AccessLocal(A) + B.ModifyLocal(1) + B.ReturnToBase()
+                    Command += Loop[1]
+
+                    Item += 1
+                
+                Command += B.ParkOutside()
+                Command += B.MovePtr(B.ReturnDist + Item + B.PAD)
+            
+            elif X == "CLEAR":
                 Targ = Op.pop(0)
 
                 Loop = B.ForPositive()
@@ -226,6 +298,20 @@ def Assemble():
 
                 Command += B.ChangeExeLine(ExeLine, ExeLine+1)
                 Command += B.ParkOutside()
+            
+            elif X == "CDCR":
+                Targ = Op.pop(0)
+                Sub = Op.pop(0)
+
+                Loop = B.ForPositive(); LoopW = B.WhilePositive()
+
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
+
+                Command += B.AccessLocal(Targ)
+                Command += LoopW[0]
+                Command += B.ReturnToBase() + B.AccessLocal(Sub)
+                Command += Loop[0] + B.ReturnToBase() + B.AccessLocal(Targ) + B.ModifyLocal(-1) + B.Reverse(B.ParkOutside()) + Loop[1] + B.ParkOutside()
+                Command += LoopW[1] + B.ParkOutside()
 
             if APPEND:
                 Fns[-1].append(Command)
@@ -241,7 +327,7 @@ if __name__ == "__main__":
 
     Code = Source.readlines()
     for I in range(len(Code)):
-        Code[I] = Code[I].split('\n')[0]
+        Code[I] = Code[I].split('\n')[0].split('\t')[-1]
     Source.close()
 
     Ln = len(Code)
@@ -254,9 +340,12 @@ if __name__ == "__main__":
             I += 1
 
     BreakDown()
+    
     print(FnData)
 
     Ps = Assemble()
+    print(CallInfo)
+
     Out = open("Compiled.txt", "w")
     for P in Ps:
         for p in P:

@@ -89,3 +89,14 @@ class BrainNode:
     
     def ParkOutside(self):
         return self.MovePtr(self.PAD + self.Sz)
+    
+    def Reverse(self, I):
+        R = ""
+        for i in I:
+            if i == '>':
+                R += '<'
+            elif i == '<':
+                R += '>'
+            else:
+                R += i
+        return R

@@ -4,8 +4,10 @@
 
 using namespace std;
 
+#define INSMEM 1024*8
+
 unsigned int Space[4096];
-char InsC[4096];
+char InsC[INSMEM];
 int InsPoint, Point;
 
 int main()
@@ -22,7 +24,7 @@ int main()
     }
 
     InsPoint = 0; Point = 0;
-    while (InsPoint < 4096)
+    while (InsPoint < INSMEM)
     {
         char I = InsC[InsPoint];
 
@@ -90,7 +92,7 @@ int main()
         InsPoint ++;
     }
 
-    for(int I = 0; I < 16; I++)
+    for(int I = 0; I < 64; I++)
         cout << Space[I] << "   ";    
 
     fclose(Ins); fclose(Inp); fclose(Out);

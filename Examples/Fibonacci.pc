@@ -1,0 +1,86 @@
+func MAIN
+
+	int N
+	N set 10
+
+	N = FIB N
+
+	end
+
+endfunc
+
+func ADD
+
+	int I0
+	int I1
+	int Ans
+
+	I0 <- I1
+	return I0
+
+endfunc
+
+func SUB
+
+	int I0
+	int I1
+
+	I0 -= I1
+	return I0
+
+endfunc
+
+func EQUAL
+
+	int I0
+	int I1
+
+	int L
+	int R
+	int Ans
+
+	L = SUB I0 I1
+	R = SUB I1 I0
+
+	if L
+		Ans set 0
+	else
+		if R
+			Ans set 0
+		else
+			Ans set 1
+		endif
+	endif
+
+	return Ans
+
+endfunc
+
+func FIB
+
+	int N
+	int X
+
+	X set 0
+	X = EQUAL N X
+	if X
+		return N
+	endif
+
+	X set 1
+	X = EQUAL N X
+	if X
+		return N
+	endif
+
+	X set 1
+	N = SUB N X
+	X = SUB N X
+
+	N = FIB N
+	X = FIB X
+	N = ADD N X
+
+	return N
+
+endfunc
