@@ -304,14 +304,15 @@ def Assemble():
                 Sub = Op.pop(0)
 
                 Loop = B.ForPositive(); LoopW = B.WhilePositive()
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1) 
 
-                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
-
-                Command += B.AccessLocal(Targ)
-                Command += LoopW[0]
-                Command += B.ReturnToBase() + B.AccessLocal(Sub)
-                Command += Loop[0] + B.ReturnToBase() + B.AccessLocal(Targ) + B.ModifyLocal(-1) + B.Reverse(B.ParkOutside()) + Loop[1] + B.ParkOutside()
-                Command += LoopW[1] + B.ParkOutside()
+                Dist = Sub - Targ
+                if Dist > 0:
+                    Command += B.AccessLocal(Targ)
+                    Command += LoopW[0]
+                    Command += B.MovePtr(Dist)
+                    Command += Loop[0] + B.MovePtr(-Dist) + B.ModifyLocal(-1) + B.MovePtr(-(Targ + B.PAD)) + Loop[1] + B.MovePtr(Targ + B.PAD)
+                    Command += LoopW[1] + B.ParkOutside()
 
             if APPEND:
                 Fns[-1].append(Command)

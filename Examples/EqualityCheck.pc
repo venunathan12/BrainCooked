@@ -1,0 +1,33 @@
+func MAIN
+	int XY
+	int YZ
+	int X
+	int Y
+	int Z
+
+	X set 18
+	Y set 18
+	Z set 7
+	
+	XY = EQL X Y
+	YZ = EQL Y Z
+
+	end
+endfunc
+
+func EQL
+	int I0
+	int I1
+	int Ans
+
+	I0 -= I1
+	I0 <- I1
+
+	if I0
+		Ans set 0
+	else
+		Ans set 1
+	endif
+
+	return Ans
+endfunc
