@@ -5,6 +5,7 @@ FnMap = {}; FnData = {}
 VarMap = {}
 
 IFQueue = []; IFStatus = []
+WHILEQueue = []
 CallInfo = {}
 
 def BreakDown():
@@ -53,12 +54,21 @@ def BreakDown():
         
         elif T == "endif":
             FnData[FnMap[ActiveFn]].append(['ENDIF'])
+        
+        elif T == "while":
+            Y = Cs.pop(0)
+
+            if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                FnData[FnMap[ActiveFn]].append(['WHILE', VarMap[FnMap[ActiveFn]][0][Y]])
+
+        elif T == "endwhile":
+            FnData[FnMap[ActiveFn]].append(['ENDWHILE'])
 
         elif T == "int":
-            X = Cs.pop(0)
-
-            L = FnMap[ActiveFn]
-            VarMap[L][0][X] = VarMap[L][1]; VarMap[L][1] += 1
+            while len(Cs):
+                X = Cs.pop(0)
+                L = FnMap[ActiveFn]
+                VarMap[L][0][X] = VarMap[L][1]; VarMap[L][1] += 1
 
         elif T == "str":
             pass
@@ -251,6 +261,43 @@ def Assemble():
                 Command += B.ChangeExeLine(ExeLine, ExeLine+1)
                 Command += B.ParkOutside()
             
+            elif X == "WHILE":
+                Trig = Op.pop(0)
+
+                Loop = B.ForPositive()
+
+                Command += B.AccessLocal(Trig)
+                Command += Loop[0]
+                Command += B.ReturnToBase() + B.ModifyLocal(1) + B.ParkOutside() + B.ModifyLocal(1)
+                Command += B.ReturnToBase() + B.AccessLocal(Trig)
+                Command += Loop[1]
+                Command += B.ReturnToBase()
+
+                Command += Loop[0]
+                Command += B.AccessLocal(Trig) + B.ModifyLocal(1) + B.ReturnToBase()
+                Command += Loop[1]
+
+                LoopW = B.WhilePositive()
+
+                Command += B.ParkOutside() + B.MovePtr(1) + B.ModifyLocal(1) + B.MovePtr(-1)
+                Command += LoopW[0]
+                Command += Loop[0] + Loop[1] + B.MovePtr(1)
+                Command += Loop[0] + B.ReturnToBase() + B.ChangeExeLine(ExeLine, ExeLine + 1) + B.ParkOutside() + Loop[1]
+                Command += LoopW[1]
+                Command += B.MovePtr(1)
+                Command += Loop[0] + B.ReturnToBase() + "$" + B.ParkOutside() +  Loop[1]
+
+                WHILEQueue.append(ExeLine)
+
+            elif X == "ENDWHILE":
+
+                W = WHILEQueue.pop()
+                Copy = Fns[-1][W].split('$')
+                Fns[-1][W] = Copy[0] + B.ChangeExeLine(W, ExeLine + 1) + Copy[1]                
+
+                Command += B.ChangeExeLine(ExeLine, W)
+                Command += B.ParkOutside()
+            
             elif X == "RETURN":
                 Val = Op.pop(0)
 
@@ -302,7 +349,7 @@ def Assemble():
             elif X == "CDCR":
                 Targ = Op.pop(0)
                 Sub = Op.pop(0)
-
+                
                 Loop = B.ForPositive(); LoopW = B.WhilePositive()
                 Command += B.ChangeExeLine(ExeLine, ExeLine+1) 
 

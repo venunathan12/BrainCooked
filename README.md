@@ -36,11 +36,12 @@ The following rules must be adhered to when writing the Source.pc file:
 
 The following commands can be used within body of functions:
 
-* int __
-    * Declares an int variable in local scope named after the word which follows the command.
-    * This command can only declare one variable at a time. (This will be improved uope in later versions)
+* int __ __ __ ...
+    * Declares int variables in local scope named after the words which follows the command.
 * if __ ... else ... endif
     * Code written between the keywords 'if' and 'else' will be executed if the variable following the if keyword stores a positive value. Otherwise the code written in the body of 'else' will be executed.
+* while __ ... endwhile
+    * If the variable following the while keyword is non-zero, the body of the loop is executed. The condotion is checked again and the cycle repeats.
 * end
     * Causes the program to exit
 * return __
@@ -65,3 +66,19 @@ The Python file Compiler.py, when run will read Source.pc file and produce a Com
 The GenTemplate.py file can be run to generate Template.txt file.
 
 The WriteIns.py file when run will load Template.txt and Compiled.txt and produce Instruction.txt, which can be executed with the Brainf**k interpreter when run with the binary in the same directory.
+
+## TLDR
+
+Open terminal or cmd on your device and execute the following commands
+```
+g++ -o Brain Brain.cpp
+
+python Compiler.py
+python WriteIns.py
+
+./Brain
+```
+
+If any of the lines fail to execute, then sit and cry.
+
+If everything works file you should see the 10th and 11th Fibonacci numbers, 55 and 89, somewhere in the output.
