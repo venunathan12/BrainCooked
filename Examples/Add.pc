@@ -1,20 +1,20 @@
 func MAIN
 	int X
 	int Y
-	int Diff
+	int Sum
 
 	X set 19
 	Y set 10
-	Diff = SUB X Y
+	Sum = ADD X Y
 
 	end
 endfunc
 
-func SUB
+func ADD
 	int I0
 	int I1
 
-	I0 -= I1
+	I0 <- I1
 
 	return I0
 endfunc

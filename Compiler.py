@@ -85,6 +85,12 @@ def BreakDown():
                     else:
                         FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                         FnData[FnMap[ActiveFn]].append(['MOD', VarMap[FnMap[ActiveFn]][0][T], Y])
+                
+                elif X == "rawinput":
+                    FnData[FnMap[ActiveFn]].append(['RIN', VarMap[FnMap[ActiveFn]][0][T]])
+
+                elif X == "rawoutput":
+                    FnData[FnMap[ActiveFn]].append(['ROUT', VarMap[FnMap[ActiveFn]][0][T]])
                     
                 elif X == "=":
                     Y = Cs.pop(0)
@@ -100,14 +106,17 @@ def BreakDown():
                         FnData[FnMap[ActiveFn]].append(Action)
 
                         FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
-                        FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][1]])
+                        FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][1], 1])
 
                 
                 elif X == "<-":
                     Y = Cs.pop(0)
+                    H = 1
+                    if len(Cs):
+                        H = int(Cs.pop(0))
 
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
-                        FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
+                        FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y], H])
                 
                 elif X == "-=":
                     Y = Cs.pop(0)
@@ -334,11 +343,12 @@ def Assemble():
             elif X == "MOVE":
                 Targ = Op.pop(0)
                 From = Op.pop(0)
+                Incr = Op.pop(0)
 
                 Loop = B.ForPositive()
                 Command += B.AccessLocal(From)
                 Command += Loop[0]
-                Command += B.ReturnToBase() + B.AccessLocal(Targ) + B.ModifyLocal(1)
+                Command += B.ReturnToBase() + B.AccessLocal(Targ) + B.ModifyLocal(Incr)
                 Command += B.ReturnToBase() + B.AccessLocal(From)
                 Command += Loop[1]
                 Command += B.ReturnToBase()
@@ -360,6 +370,20 @@ def Assemble():
                     Command += B.MovePtr(Dist)
                     Command += Loop[0] + B.MovePtr(-Dist) + B.ModifyLocal(-1) + B.MovePtr(-(Targ + B.PAD)) + Loop[1] + B.MovePtr(Targ + B.PAD)
                     Command += LoopW[1] + B.ParkOutside()
+            
+            elif X == "RIN":
+                Targ = Op.pop(0)
+
+                Command += B.AccessLocal(Targ) + B.RawInput() + B.ReturnToBase()
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
+                Command += B.ParkOutside()
+            
+            elif X == "ROUT":
+                Targ = Op.pop(0)
+
+                Command += B.AccessLocal(Targ) + B.RawPrint() + B.ReturnToBase()
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
+                Command += B.ParkOutside()
 
             if APPEND:
                 Fns[-1].append(Command)

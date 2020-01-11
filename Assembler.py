@@ -100,3 +100,9 @@ class BrainNode:
             else:
                 R += i
         return R
+    
+    def RawPrint(self):
+        return "."
+    
+    def RawInput(self):
+        return ","

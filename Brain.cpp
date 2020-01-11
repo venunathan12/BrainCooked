@@ -23,6 +23,8 @@ int main()
         InsPoint ++;
     }
 
+    cout << "Program Output :" << endl;
+
     InsPoint = 0; Point = 0;
     while (InsPoint < INSMEM)
     {
@@ -83,7 +85,17 @@ int main()
                         break;
                 }
             }
+            break;
         }
+
+        case '.':
+            fprintf(Out, "%c", Space[Point]);
+            printf("%c", Space[Point]);
+            break;
+        
+        case ',':
+            fscanf(Inp, "%c", &Space[Point]);
+            break;
         
         default:
             break;
@@ -92,6 +104,8 @@ int main()
         InsPoint ++;
     }
 
+    cout << endl << endl << endl;
+    cout << "First 64 Memory Cells, Displayed Below : " << endl;
     for(int I = 0; I < 64; I++)
         cout << Space[I] << "   ";    
 
