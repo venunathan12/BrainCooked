@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define INSMEM 1024*8
+#define INSMEM 1024*64
 
 unsigned int Space[4096];
 char InsC[INSMEM];

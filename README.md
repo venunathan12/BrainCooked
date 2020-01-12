@@ -74,12 +74,12 @@ Open terminal or cmd on your device and execute the following commands
 ```
 g++ -o Brain Brain.cpp
 
-python Compiler.py
-python WriteIns.py
+python3 Compiler.py
+python3 WriteIns.py
 
 ./Brain
 ```
 
 If any of the lines fail to execute, then sit and cry.
 
-If everything works file you should see the 10th and 11th Fibonacci numbers, **55** and **89**, somewhere among the 64 Memory Cells.
+If everything works file you should see the 10th Fibonacci numbers, **55** in the output.

@@ -1,4 +1,4 @@
-AddrSize = 6
+AddrSize = 8
 
 def H_ToBin(In):
 
