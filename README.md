@@ -80,6 +80,9 @@ python3 WriteIns.py
 ./Brain
 ```
 
+Ignore the warning during g++ compilation.
+
+
 If any of the lines fail to execute, then sit and cry.
 
 If everything works file you should see the 10th Fibonacci numbers, **55** in the output.
