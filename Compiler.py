@@ -304,8 +304,12 @@ def Assemble():
                 Copy = Fns[-1][W].split('$')
                 Fns[-1][W] = Copy[0] + B.ChangeExeLine(W, ExeLine + 1) + Copy[1]                
 
-                Command += B.ChangeExeLine(ExeLine, W)
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
                 Command += B.ParkOutside()
+
+                Copy = Fns[-1][-1]
+                Copy += B.ReturnToBase() + B.ChangeExeLine(ExeLine, W) + B.ParkOutside()
+                Fns[-1][-1] = Copy                
             
             elif X == "RETURN":
                 Val = Op.pop(0)
