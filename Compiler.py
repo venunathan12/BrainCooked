@@ -37,6 +37,9 @@ def BreakDown():
         elif T == "end":
             FnData[FnMap[ActiveFn]].append(['END'])
         
+        elif T == "NULL":
+            FnData[FnMap[ActiveFn]].append(['NULL'])
+        
         elif T == "return":
             Y = Cs.pop(0)
 
@@ -69,6 +72,12 @@ def BreakDown():
                 X = Cs.pop(0)
                 L = FnMap[ActiveFn]
                 VarMap[L][0][X] = VarMap[L][1]; VarMap[L][1] += 1
+        
+        elif T == "intarr":
+            Ln = int(Cs.pop(0))
+            X = Cs.pop(0)
+            L = FnMap[ActiveFn]
+            VarMap[L][0][X] = VarMap[L][1]; VarMap[L][1] += Ln
 
         elif T == "str":
             pass
@@ -107,7 +116,36 @@ def BreakDown():
 
                         FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                         FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][1], 1])
-
+                
+                elif X == "storein":
+                    Y = Cs.pop(0)
+                    if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                        Z = Cs.pop(0)
+                        if Z in VarMap[FnMap[ActiveFn]][0].keys():
+                            FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][1], VarMap[FnMap[ActiveFn]][0][Z]])
+                            FnData[FnMap[ActiveFn]].append(['EXPAND'])
+                            FnData[FnMap[ActiveFn]].append(['CLEAR_ARRELEM', VarMap[FnMap[ActiveFn]][0][Y]])
+                            FnData[FnMap[ActiveFn]].append(['STORE', VarMap[FnMap[ActiveFn]][0][Y], VarMap[FnMap[ActiveFn]][0][T]])
+                            FnData[FnMap[ActiveFn]].append(['NULL'])
+                        else:
+                            Z = int(Z)
+                            FnData[FnMap[ActiveFn]].append(['CLEAR', Z + VarMap[FnMap[ActiveFn]][0][Y]])
+                            FnData[FnMap[ActiveFn]].append(['COPY', Z + VarMap[FnMap[ActiveFn]][0][Y], VarMap[FnMap[ActiveFn]][0][T]])
+                
+                elif X == "fetchfrom":
+                    Y = Cs.pop(0)
+                    if Y in VarMap[FnMap[ActiveFn]][0].keys():
+                        Z =  Cs.pop(0)
+                        if Z in VarMap[FnMap[ActiveFn]][0].keys():
+                            FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
+                            FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][1], VarMap[FnMap[ActiveFn]][0][Z]])
+                            FnData[FnMap[ActiveFn]].append(['EXPAND'])
+                            FnData[FnMap[ActiveFn]].append(['FETCH', VarMap[FnMap[ActiveFn]][0][Y], VarMap[FnMap[ActiveFn]][0][T]])
+                            FnData[FnMap[ActiveFn]].append(['NULL'])
+                        else:
+                            Z = int(Z)
+                            FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
+                            FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][0][T], Z + VarMap[FnMap[ActiveFn]][0][Y]])
                 
                 elif X == "<-":
                     Y = Cs.pop(0)
@@ -215,6 +253,10 @@ def Assemble():
                 Command += B.ReturnToBase()
                 Command += B.ParkOutside()
             
+            elif X == "NULL":
+                Command += B.ChangeExeLine(ExeLine, ExeLine+1)
+                Command += B.ParkOutside()
+            
             elif X == "IF":
                 Trig = Op.pop(0)
 
@@ -311,6 +353,65 @@ def Assemble():
                 Copy += B.ReturnToBase() + B.ChangeExeLine(ExeLine, W) + B.ParkOutside()
                 Fns[-1][-1] = Copy                
             
+            elif X == "EXPAND":
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
+                Command += B.ParkOutside() + B.ModifyLocal(-1) + B.MovePtr(-1)
+
+                Loop = B.ForPositive()
+                Command += Loop[0] + B.MovePtr(1) + B.PositiveRunRight() + B.ModifyLocal(1) + B.SlideLeft()
+                Command += B.ModifyLocal(-1) + B.MarkAsOutside() + B.MovePtr(-1)
+                Command += Loop[1] + B.MovePtr(1) + B.ModifyLocal(1) + B.MovePtr(1) + B.PositiveRunRight()
+            
+            elif X == "STORE":
+                Targ = Op.pop(0)
+                From = Op.pop(0)
+
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
+
+                Loop = B.ForPositive()
+
+                Command += B.AccessLocal(From)
+                Command += Loop[0] + B.ReturnToBase() + B.ModifyLocal(1) + B.ParkOutside() + B.MovePtr(-1) + B.ModifyLocal(1)
+                Command += B.ReturnToBase() + B.AccessLocal(From) + Loop[1] + B.ReturnToBase()
+                Command += Loop[0] + B.AccessLocal(From) + B.ModifyLocal(1) + B.ReturnToBase() + Loop[1]
+
+                Command += B.ParkOutside() + B.ModifyLocal(-1) + B.MovePtr(-1)
+                Command += Loop[0] + B.MovePtr(1) + B.PositiveRunRight() + B.MovePtr(-1 * (B.Sz - Targ + 1)) + B.ModifyLocal(1) + B.MovePtr(B.Sz - Targ + 1)
+                Command += B.SlideLeft() + B.ModifyLocal(-1) + B.MarkAsOutside() + B.MovePtr(-1) + Loop[1]
+                Command += B.MovePtr(1) + B.ModifyLocal(1) + B.MovePtr(1)
+                Command += Loop[0] + B.MovePtr(1) + Loop[1]
+            
+            elif X == "FETCH":
+                From = Op.pop(0)
+                Targ = Op.pop(0)
+
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
+
+                Loop = B.ForPositive()
+
+                Command += B.ParkOutside() + B.ModifyLocal(-1) + B.PositiveRunRight()
+                Command += B.MovePtr(-1 * (B.Sz - From + 1)) + Loop[0]
+                Command += B.SlideLeft() + B.ModifyLocal(-1) + B.MovePtr(B.ReturnDist - 1) + B.MarkAsBase()
+                Command += B.ModifyLocal(1) + B.AccessLocal(Targ) + B.ModifyLocal(1) + B.ReturnToBase()
+                Command += B.ParkOutside() + B.PositiveRunRight() + B.MovePtr(-1 * (B.Sz - From + 1)) + Loop[1]
+
+                Command += B.SlideLeft() + B.ModifyLocal(-1) + B.MovePtr(B.ReturnDist - 1) + B.MarkAsBase()
+                Command += Loop[0] + B.ParkOutside() + B.PositiveRunRight() + B.MovePtr(-1 * (B.Sz - From + 1)) + B.ModifyLocal(1)
+                Command += B.SlideLeft() + B.ModifyLocal(-1) + B.MovePtr(B.ReturnDist - 1) + B.MarkAsBase() + Loop[1]
+
+                Command += B.ParkOutside() + B.ModifyLocal(1) + B.MovePtr(1)
+                Command += Loop[0] + B.MovePtr(1) + Loop[1]
+            
+            elif X == "CLEAR_ARRELEM":
+                Targ = Op.pop(0)
+
+                Command += B.ChangeExeLine(ExeLine, ExeLine + 1)
+
+                Loop = B.ForPositive()
+
+                Command += B.ParkOutside() + B.MovePtr(1)
+                Command += B.PositiveRunRight() + B.MovePtr(-1 * (B.Sz + Targ + 1)) + Loop[0] + Loop[1] + B.MovePtr(B.Sz + Targ + 1)
+
             elif X == "RETURN":
                 Val = Op.pop(0)
 

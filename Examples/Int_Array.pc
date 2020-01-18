@@ -1,0 +1,42 @@
+func Main
+	intarr 16 X
+	
+	int O N E I T Ans
+
+	O set 1
+	N set 16
+	Ans set 0
+
+	I set 0
+	E = O
+	while E
+		I storein X I
+
+		I = ADD I O
+		E = SUB N I
+	endwhile
+
+	I set 0
+	E = O
+	while E
+		T fetchfrom X I
+		Ans = ADD Ans T
+
+		I = ADD I O
+		E = SUB N I
+	endwhile
+
+	end
+endfunc
+
+func ADD
+	int X0 X1
+	X0 <- X1
+	return X0
+endfunc
+
+func SUB
+	int X0 X1
+	X0 -= X1
+	return X0
+endfunc

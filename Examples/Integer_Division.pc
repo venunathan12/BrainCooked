@@ -1,0 +1,49 @@
+func Main
+	int D
+	int Div
+
+	int R
+
+	D set 9
+	Div set 4
+	R = DIV D Div
+
+	end
+endfunc
+
+func DIV
+	int D Div
+	int E O Ans
+
+	O set 1
+	while O
+		E = SUB_R D Div
+		if E
+			O set 0
+		else
+			Ans = ADD Ans O
+			D = SUB D Div
+		endif
+	endwhile
+
+	return Ans
+
+endfunc
+
+func ADD
+	int X0 X1
+	X0 <- X1
+	return X0
+endfunc
+
+func SUB
+	int X0 X1
+	X0 -= X1
+	return X0
+endfunc
+
+func SUB_R
+	int X0 X1
+	X0 -= X1
+	return X1
+endfunc

@@ -32,6 +32,10 @@ class BrainNode:
         else:
             return ""
     
+    def MarkAsBase(self):
+        self.Pointer = 0
+        return ""
+    
     def AccessLocal(self, I):
         self.Pointer += self.PAD + I
         return ">" * (self.PAD + I)
@@ -89,6 +93,19 @@ class BrainNode:
     
     def ParkOutside(self):
         return self.MovePtr(self.PAD + self.Sz)
+    
+    def MarkAsOutside(self):
+        self.Pointer = self.Sz + self.PAD
+        return ""
+    
+    def SlideLeft(self):
+        return "+[-<+]"
+    
+    def SlideRight(self):
+        return "+[->+]"
+    
+    def PositiveRunRight(self):
+        return "[>]"
     
     def Reverse(self, I):
         R = ""

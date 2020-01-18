@@ -32,6 +32,16 @@ int main()
 
         switch (I)
         {
+        case 'X':
+            cout << endl << "Breakpoint : ";
+            int BTemp; cin >> BTemp;
+            cout << endl << endl << endl;
+            cout << "First 64 Memory Cells, Displayed Below : (From Breakpoint)" << endl;
+            for(int I = 0; I < 64; I++)
+                cout << Space[I] << "   ";
+            cout << endl;
+            break;
+
         case '<':
             Point --;
             break;
