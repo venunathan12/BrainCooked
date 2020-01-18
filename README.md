@@ -1,13 +1,15 @@
 # BrainCooked
 A compiler from a higher level Psudo-Code to BrainFuck.
 
-Version : Beta 1.1.2
+Version : Beta 1.2.1
 
 
 ## Introduction
 Being one of the simplest languages ever written, Brainf**k is ideal for hardware implementation of computer systems. But its simplicity makes it hard to write complex programs.
 
 This project is a stepping stone towards addressing this issue. A compiler from a high level language is exactly what Brainf**k needs.
+
+The following is a compiler from a high level Psudo-Code which can produce equivalent Brainf**k code. The compiled code can be tested with the Interpreter which is present with this project.
 
 ## Usage
 
@@ -39,6 +41,10 @@ The following commands can be used within body of functions:
 
 * int __ __ __ ...
     * Declares int variables in local scope named after the words which follows the command.
+* intarr __ __
+    * Array of integers can be declared one at a time.
+    * The first parameter after the 'intarr' keyword is the length of the array.
+    *  The next is the name of the array to be declared in local scope.
 * if __ ... else ... endif
     * Code written between the keywords 'if' and 'else' will be executed if the variable following the if keyword stores a positive value. Otherwise the code written in the body of 'else' will be executed.
 * while __ ... endwhile
@@ -59,6 +65,20 @@ The following commands can be used within body of functions:
 * Var -= __ (for internal purposes)
     * Decrements both Var and the other variable till one of them becomes zero.
     * Note : The variable Var must have been declared before the other variable.
+    * Note : This operator must only be used on the last two variables declared (for safety).
+    * Note : This operator is dangerous if not correctly used. So consider using the SUB function seen in examples.
+* Var rawinput
+    * The ASCII value of next character in Input.txt file is copied into the variable Var.
+* Var rawoutput
+    * Prints to Program Output and Output.txt file, the character whose ASCII value is that stored in variable Var.
+* Var storein __ __
+    * Used to copy the value in a variable to an array element.
+    * The parameter after the 'storein' keyword is the name of the array.
+    * The next parameter is the index of the element which must be accessed. It can be a scalar number, or another variable.
+* Var fetchfrom __ __
+    * Used to copy the value of an array element to a local variable.
+    * The parameter after the 'fetchfrom' keyword is the name of the array.
+    * The next parameter is the index of the element which must be accessed. It can be a scalar number, or another variable.
 
 ### Usage : Compiling
 
@@ -67,6 +87,9 @@ The Python file Compiler.py, when run will read Source.pc file and produce a Com
 The GenTemplate.py file can be run to generate Template.txt file.
 
 The WriteIns.py file when run will load Template.txt and Compiled.txt and produce Instruction.txt, which can be executed with the Brainf**k interpreter when run with the binary in the same directory.
+
+The default instruction limit is 256 lines.
+But it can be improved by increasing the AddrSize variables in the python files.
 
 ## TLDR
 
