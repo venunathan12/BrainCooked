@@ -4,17 +4,17 @@ func MAIN
 
 	N set 10
 
+	X set 1
 	L set 0
 	R set 1
 
 	while N
 		R = ADD L R
 		L = SUB R L
-		X set 1
 		N = SUB N X
 	endwhile
 
-	L = PRINT2 L
+	X = PRINT2 L
 
 	end
 endfunc
@@ -75,6 +75,9 @@ func PRINT2
 	V1 = ADD V1 T0
 	V1 rawoutput
 	V0 rawoutput
+
+	In set 10
+	In rawoutput
 
 	return In
 endfunc

@@ -8,7 +8,7 @@ In = open("Compiled.txt", "r")
 I = In.readlines()
 In.close()
 
-print(len(I))
+print(f"{len(I)} Instructions will be written.")
 if len(I) > 2**AddrSize:
     print("Too many INS.")
     exit()

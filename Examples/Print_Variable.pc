@@ -36,6 +36,9 @@ func PRINT2
 	V1 rawoutput
 	V0 rawoutput
 
+	In set 10
+	In rawoutput
+
 	return In
 endfunc
 

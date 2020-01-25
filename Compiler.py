@@ -1,3 +1,5 @@
+import os
+
 from Assembler import BrainNode
 
 Code = []
@@ -79,9 +81,6 @@ def BreakDown():
             L = FnMap[ActiveFn]
             VarMap[L][0][X] = VarMap[L][1]; VarMap[L][1] += Ln
 
-        elif T == "str":
-            pass
-
         else:
             if T in VarMap[FnMap[ActiveFn]][0].keys():
                 X = Cs.pop(0)
@@ -107,7 +106,7 @@ def BreakDown():
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
                         FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                         FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
-                    if Y in FnMap.keys():
+                    elif Y in FnMap.keys():
                         Action = ['CALL', Y]
                         while len(Cs):
                             R = Cs.pop(0)
@@ -116,6 +115,8 @@ def BreakDown():
 
                         FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                         FnData[FnMap[ActiveFn]].append(['MOVE', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][1], 1])
+                    else:
+                        print(f"Unknown RHS : {Y} : Expected Variable name, or Function call")
                 
                 elif X == "storein":
                     Y = Cs.pop(0)
@@ -131,6 +132,8 @@ def BreakDown():
                             Z = int(Z)
                             FnData[FnMap[ActiveFn]].append(['CLEAR', Z + VarMap[FnMap[ActiveFn]][0][Y]])
                             FnData[FnMap[ActiveFn]].append(['COPY', Z + VarMap[FnMap[ActiveFn]][0][Y], VarMap[FnMap[ActiveFn]][0][T]])
+                    else:
+                        print(f"Expected Variable name, not {Y}")
                 
                 elif X == "fetchfrom":
                     Y = Cs.pop(0)
@@ -146,6 +149,8 @@ def BreakDown():
                             Z = int(Z)
                             FnData[FnMap[ActiveFn]].append(['CLEAR', VarMap[FnMap[ActiveFn]][0][T]])
                             FnData[FnMap[ActiveFn]].append(['COPY', VarMap[FnMap[ActiveFn]][0][T], Z + VarMap[FnMap[ActiveFn]][0][Y]])
+                    else:
+                        print(f"Expected Variable name, not {Y}")
                 
                 elif X == "<-":
                     Y = Cs.pop(0)
@@ -161,6 +166,12 @@ def BreakDown():
 
                     if Y in VarMap[FnMap[ActiveFn]][0].keys():
                         FnData[FnMap[ActiveFn]].append(['CDCR', VarMap[FnMap[ActiveFn]][0][T], VarMap[FnMap[ActiveFn]][0][Y]])
+                
+                else:
+                    print(f"Error : Unknown Following Word : {X} : on Variable '{T}'")
+            
+            else:
+                print(f"Error : Unknown Starting Word : {T}")
 
 def Assemble():
 
@@ -517,15 +528,12 @@ if __name__ == "__main__":
             I += 1
 
     BreakDown()
-    
-    print(FnData)
-
     Ps = Assemble()
-    print(CallInfo)
 
     Out = open("Compiled.txt", "w")
     for P in Ps:
         for p in P:
-            print('\t' + p)
             Out.write(p + '\n')
     Out.close()
+
+    os.system("python3 WriteIns.py")
