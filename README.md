@@ -1,8 +1,9 @@
 # BrainCooked
 A compiler from a higher level Psudo-Code to BrainFuck.
 
-Version : Beta 1.2.1
+Version : Beta 1.3.1
 
+Please check the presentation **Working Explained.pdf** for descriptive explanation of how this compiler functions.
 
 ## Introduction
 Being one of the simplest languages ever written, Brainf**k is ideal for hardware implementation of computer systems. But its simplicity makes it hard to write complex programs.
@@ -10,6 +11,35 @@ Being one of the simplest languages ever written, Brainf**k is ideal for hardwar
 This project is a stepping stone towards addressing this issue. A compiler from a high level language is exactly what Brainf**k needs.
 
 The following is a compiler from a high level Psudo-Code which can produce equivalent Brainf**k code. The compiled code can be tested with the Interpreter which is present with this project.
+
+## File Hierarchy
+
+```
+BrainCooked
+│
+└───Examples
+│   └───Example1.pc
+│   └───Example2.pc
+│   ...
+│
+└───Source.pc
+└───Instruction.txt
+└───Input.txt
+└───Output.txt
+│
+└───Brain.cpp
+│
+└───Compiler.py
+└───Assembler.py
+└───GenTemplate.py
+└───WriteIns.py
+└───Compiled.txt
+└───Template.txt
+│
+└───README.md
+└───LICENSE
+└───Working Explained.pdf
+```
 
 ## Usage
 
@@ -86,7 +116,7 @@ The Python file Compiler.py, when run will read Source.pc file and produce a Com
 
 The GenTemplate.py file can be run to generate Template.txt file.
 
-The WriteIns.py file when run will load Template.txt and Compiled.txt and produce Instruction.txt, which can be executed with the Brainf**k interpreter when run with the binary in the same directory.
+The WriteIns.py file when run will load Template.txt and Compiled.txt and produce Instruction.txt, which can be executed with the Brainf**k interpreter when run with the binary in the same directory. This file is executed internally by Compiler.py after it has completed writing Compiled.txt.
 
 The default instruction limit is 256 lines.
 But it can be improved by increasing the AddrSize variables in the python files.
@@ -98,7 +128,6 @@ Open terminal or cmd on your device and execute the following commands
 g++ -o Brain Brain.cpp
 
 python3 Compiler.py
-python3 WriteIns.py
 
 ./Brain
 ```
